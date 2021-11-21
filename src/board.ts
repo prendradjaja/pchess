@@ -1,4 +1,4 @@
-import { inBounds, toSquareName } from "./util";
+import { inBounds, toSquareName, addOffset } from "./util";
 import {
   Nullable,
   Piece,
@@ -228,6 +228,7 @@ export class Board {
     return results;
   }
 
+  // Pseudolegal
   private *generateMovesForPiece(
     r: number,
     c: number,
@@ -248,6 +249,7 @@ export class Board {
     }
   }
 
+  // Pseudolegal
   private *generateKingMoves(
     r: number,
     c: number,
@@ -274,9 +276,52 @@ export class Board {
         };
       }
     }
-    // TODO Castling
+    yield* this.generateCastlingMoves(r, c, piece);
   }
 
+  // Pseudolegal
+  private *generateCastlingMoves(
+    r: number,
+    c: number,
+    piece: Piece
+  ): Generator<Move> {
+    // TODO Don't allow if castling through check
+    // TODO Don't allow if in check
+    // TODO If a rook is captured, should castling right be lost? Or should we
+    // have a check for if the rook exists here?
+    yield* this.generateCastlingMove(r, c, piece, "short");
+    yield* this.generateCastlingMove(r, c, piece, "long");
+  }
+
+  // Pseudolegal
+  private *generateCastlingMove(
+    r: number,
+    c: number,
+    piece: Piece,
+    type: "short" | "long"
+  ): Generator<Move> {
+    const color = piece.color;
+    const rights = this.castlingRights[color];
+    if (rights[type]) {
+      const direction = type === "short" ? 1 : -1;
+      const intermediateSquare = addOffset({ r, c }, { dr: 0, dc: direction });
+      const targetSquare = addOffset(intermediateSquare, {
+        dr: 0,
+        dc: direction,
+      });
+      if (!this.getPiece(intermediateSquare) && !this.getPiece(targetSquare)) {
+        yield {
+          piece,
+          start: { r, c },
+          target: targetSquare,
+          isEnPassant: false,
+          isCastling: true,
+        };
+      }
+    }
+  }
+
+  // Pseudolegal
   private *generateQueenMoves(
     r: number,
     c: number,
@@ -285,6 +330,7 @@ export class Board {
     yield* this.generateSlidingMoves(r, c, piece, ALL_DIRECTIONS);
   }
 
+  // Pseudolegal
   private *generateRookMoves(
     r: number,
     c: number,
@@ -293,6 +339,7 @@ export class Board {
     yield* this.generateSlidingMoves(r, c, piece, ROOK_DIRECTIONS);
   }
 
+  // Pseudolegal
   private *generateKnightMoves(
     r: number,
     c: number,
@@ -321,6 +368,7 @@ export class Board {
     }
   }
 
+  // Pseudolegal
   private *generateBishopMoves(
     r: number,
     c: number,
@@ -329,6 +377,7 @@ export class Board {
     yield* this.generateSlidingMoves(r, c, piece, BISHOP_DIRECTIONS);
   }
 
+  // Pseudolegal
   private *generatePawnMoves(
     r: number,
     c: number,
@@ -337,6 +386,7 @@ export class Board {
     // TODO
   }
 
+  // Pseudolegal
   private *generateSlidingMoves(
     r: number,
     c: number,
@@ -397,11 +447,15 @@ export class Board {
   }
 
   private toAlgebraicMove(move: Move): string {
-    const piece = move.piece.type.toUpperCase();
-    const capture = move.capturedPiece ? "x" : "";
-    const target = toSquareName(move.target);
-    return piece + capture + target;
     // TODO Disambiguation, check, mate promotion
+    if (move.isCastling) {
+      return move.target.c === 6 ? "O-O" : "O-O-O";
+    } else {
+      const piece = move.piece.type.toUpperCase();
+      const capture = move.capturedPiece ? "x" : "";
+      const target = toSquareName(move.target);
+      return piece + capture + target;
+    }
   }
 
   private fromFenPiece(fenPiece: FenPiece): Piece {

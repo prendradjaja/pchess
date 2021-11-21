@@ -13,7 +13,7 @@ describe("moves()", () => {
 . . . . . . . .
 . . . . . . . .
 . . . . . . . .`;
-    board.loadAscii(ascii, { turn: "w" });
+    board.loadAscii(ascii, { turn: "w", castling: "-" });
     const moves = board.moves();
     expect(moves.sort()).toEqual("Kd3 Kd4 Kd5 Ke3 Ke5 Kf3 Kf4 Kf5".split(" "));
   });
@@ -117,5 +117,79 @@ describe("moves()", () => {
 
     const kh3 = verboseMoves.find((move) => toSquareName(move.target) === "h3");
     expect(kh3.capturedPiece).toBeUndefined();
+  });
+
+  describe("Castling", () => {
+    it("should be possible", () => {
+      const board = new Board();
+      const ascii = `
+. . . . . . k .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . P P P . .
+R . . . K . . R`;
+      board.loadAscii(ascii, { turn: "w" });
+      const castlingMoves = board
+        .moves()
+        .filter((move) => move.startsWith("O"));
+      expect(castlingMoves.sort()).toEqual(["O-O", "O-O-O"]);
+    });
+
+    it("should respect castling rights (e.g. only can castle queenside)", () => {
+      const board = new Board();
+      const ascii = `
+r . . . k . . r
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . K . .`;
+      board.loadAscii(ascii, { turn: "b", castling: "q" });
+      const castlingMoves = board
+        .moves()
+        .filter((move) => move.startsWith("O"));
+      expect(castlingMoves.sort()).toEqual(["O-O-O"]);
+    });
+
+    it("should not be possible if both castling rights have been lost", () => {
+      const board = new Board();
+      const ascii = `
+r . . . k . . r
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . K . .`;
+      board.loadAscii(ascii, { turn: "b", castling: "-" });
+      const castlingMoves = board
+        .moves()
+        .filter((move) => move.startsWith("O"));
+      expect(castlingMoves.sort()).toEqual([]);
+    });
+
+    it("should not be possible with pieces in the way", () => {
+      const board = new Board();
+      const ascii = `
+. . . . . . k .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . P P P . .
+R . . Q K . N R`;
+      board.loadAscii(ascii, { turn: "w" });
+      const castlingMoves = board
+        .moves()
+        .filter((move) => move.startsWith("O"));
+      expect(castlingMoves.sort()).toEqual([]);
+    });
   });
 });
