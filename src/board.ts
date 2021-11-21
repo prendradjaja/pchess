@@ -14,7 +14,7 @@ import {
   Offset,
 } from "./types";
 
-const directions: { [key: string]: Offset } = {
+const directionsByName: { [key: string]: Offset } = {
   N: { dr: -1, dc: 0 },
   NE: { dr: -1, dc: 1 },
   E: { dr: 0, dc: 1 },
@@ -25,7 +25,19 @@ const directions: { [key: string]: Offset } = {
   NW: { dr: -1, dc: -1 },
 };
 
-const ALL_DIRECTIONS = Object.values(directions);
+const ALL_DIRECTIONS = Object.values(directionsByName);
+const ROOK_DIRECTIONS = [
+  directionsByName.N,
+  directionsByName.E,
+  directionsByName.S,
+  directionsByName.W,
+];
+const BISHOP_DIRECTIONS = [
+  directionsByName.NE,
+  directionsByName.SE,
+  directionsByName.SW,
+  directionsByName.NW,
+];
 const KNIGHT_MOVES = [
   { dr: -2, dc: -1 },
   { dr: -1, dc: -2 },
@@ -38,10 +50,17 @@ const KNIGHT_MOVES = [
 ];
 
 export function demo() {
-  const exampleFen = "6k1/8/8/8/8/8/5PP1/6K1 w - - 0 1";
   const board = new Board();
-  board.load(exampleFen);
-  console.log(board.ascii());
+  const ascii = `
+. . . . . . k .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . R . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . K`;
+  board.loadAscii(ascii, { turn: "w" });
   console.log(board.moves());
 }
 
@@ -227,7 +246,7 @@ export class Board {
     c: number,
     piece: Piece
   ): Generator<Move> {
-    // TODO
+    yield* this.generateSlidingMoves(r, c, piece, ROOK_DIRECTIONS);
   }
 
   private *generateKnightMoves(
@@ -272,6 +291,47 @@ export class Board {
     piece: Piece
   ): Generator<Move> {
     // TODO
+  }
+
+  private *generateSlidingMoves(
+    r: number,
+    c: number,
+    piece: Piece,
+    directions: Offset[]
+  ): Generator<Move> {
+    for (let direction of directions) {
+      let i = 1;
+      let targetSquare = {
+        r: r + direction.dr,
+        c: c + direction.dc,
+      };
+      while (inBounds(targetSquare)) {
+        const capturedPiece: Piece | undefined =
+          this.board[targetSquare.r][targetSquare.c];
+        if (capturedPiece?.color === piece.color) {
+          break;
+        }
+
+        yield {
+          piece,
+          start: { r, c },
+          target: targetSquare,
+          isEnPassant: false,
+          isCastling: false,
+          capturedPiece,
+        };
+
+        if (capturedPiece) {
+          break;
+        }
+
+        i++;
+        targetSquare = {
+          r: r + direction.dr * i,
+          c: c + direction.dc * i,
+        };
+      }
+    }
   }
 
   private makeInitialBoard(): Nullable<Piece>[][] {

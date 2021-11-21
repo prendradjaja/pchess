@@ -36,6 +36,46 @@ describe("moves()", () => {
     );
   });
 
+  it("generates rook moves on an empty board", () => {
+    const board = new Board();
+    const ascii = `
+. . . . . . k .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . R . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . K`;
+    board.loadAscii(ascii, { turn: "w" });
+    const rookMoves = board.moves().filter((move) => move.startsWith("R"));
+    expect(rookMoves.sort()).toEqual(
+      (
+        "Ra4 Rb4 Rc4 Rd4 " +
+        "Re1 Re2 Re3 Re5 Re6 Re7 Re8 " + // vertical moves
+        "Rf4 Rg4 Rh4"
+      ).split(" ")
+    );
+  });
+
+  it("generates rook moves, stopping at own pieces and capturing enemy pieces", () => {
+    const board = new Board();
+    const ascii = `
+. . . . . . k .
+. . . . P . . .
+. . . . . . . .
+. . . . . . . .
+. . n . R . P .
+. . . . . . . .
+. . . . b . . .
+. . . . . . . K`;
+    board.loadAscii(ascii, { turn: "w" });
+    const rookMoves = board.moves().filter((move) => move.startsWith("R"));
+    expect(rookMoves.sort()).toEqual(
+      "Rd4 Re3 Re5 Re6 Rf4 Rxc4 Rxe2".split(" ")
+    );
+  });
+
   it("won't generate self-captures or moves out of bounds", () => {
     const board = new Board();
     const ascii = `
