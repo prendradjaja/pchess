@@ -26,12 +26,12 @@ interface CastlingRights {
   b: { short: boolean; long: boolean };
 }
 
-type ZeroCoordinate = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
-type SquareCoords = { r: ZeroCoordinate; c: ZeroCoordinate };
+// zero-indexed
+type SquareCoords = { r: number; c: number };
 
 type FileName = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h";
-type OneCoordinate = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-type SquareName = `${FileName}${OneCoordinate}`;
+type OneIndexedCoordinate = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+type SquareName = `${FileName}${OneIndexedCoordinate}`;
 
 export function demo() {
   console.log(new Board().ascii());
