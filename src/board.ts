@@ -162,12 +162,16 @@ export class Board {
   ): Generator<Move> {
     if (piece.type === "k") {
       yield* this.generateKingMoves(r, c, piece);
+    } else if (piece.type === "q") {
+      yield* this.generateQueenMoves(r, c, piece);
     } else if (piece.type === "r") {
       yield* this.generateRookMoves(r, c, piece);
+    } else if (piece.type === "n") {
+      yield* this.generateKnightMoves(r, c, piece);
+    } else if (piece.type === "b") {
+      yield* this.generateBishopMoves(r, c, piece);
     } else if (piece.type === "p") {
       yield* this.generatePawnMoves(r, c, piece);
-    } else {
-      throw "Not implemented";
     }
   }
 
@@ -200,7 +204,31 @@ export class Board {
     // TODO Castling
   }
 
+  private *generateQueenMoves(
+    r: number,
+    c: number,
+    piece: Piece
+  ): Generator<Move> {
+    // TODO
+  }
+
   private *generateRookMoves(
+    r: number,
+    c: number,
+    piece: Piece
+  ): Generator<Move> {
+    // TODO
+  }
+
+  private *generateKnightMoves(
+    r: number,
+    c: number,
+    piece: Piece
+  ): Generator<Move> {
+    // TODO
+  }
+
+  private *generateBishopMoves(
     r: number,
     c: number,
     piece: Piece
