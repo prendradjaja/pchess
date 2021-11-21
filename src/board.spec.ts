@@ -119,7 +119,7 @@ describe(".moves()", () => {
     expect(kh3.capturedPiece).toBeUndefined();
   });
 
-  describe("Castling", () => {
+  describe("(Castling)", () => {
     it("should be possible", () => {
       const board = new Board();
       const ascii = `
