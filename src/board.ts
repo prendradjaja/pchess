@@ -1,40 +1,40 @@
-type Nullable<T> = T | undefined;
+import { inBounds, toSquareName } from "./util";
+import {
+  Nullable,
+  Piece,
+  PieceType,
+  Move,
+  FenPiece,
+  Color,
+  CastlingRights,
+  SquareCoords,
+  FileName,
+  OneIndexedCoordinate,
+  SquareName,
+} from "./types";
 
-interface Piece {
-  color: Color;
-  type: PieceType;
-}
-type PieceType = "k" | "q" | "r" | "b" | "n" | "p";
-
-type FenPiece =
-  | "k"
-  | "q"
-  | "r"
-  | "b"
-  | "n"
-  | "p"
-  | "K"
-  | "Q"
-  | "R"
-  | "B"
-  | "N"
-  | "P";
-
-type Color = "w" | "b";
-interface CastlingRights {
-  w: { short: boolean; long: boolean };
-  b: { short: boolean; long: boolean };
-}
-
-// zero-indexed
-type SquareCoords = { r: number; c: number };
-
-type FileName = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h";
-type OneIndexedCoordinate = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-type SquareName = `${FileName}${OneIndexedCoordinate}`;
+const directions: { [key: string]: number[] } = {
+  N: [-1, 0],
+  NE: [-1, 1],
+  E: [0, 1],
+  SE: [1, 1],
+  S: [1, 0],
+  SW: [1, -1],
+  W: [0, -1],
+  NW: [-1, -1],
+};
 
 export function demo() {
-  console.log(new Board().ascii());
+  // console.log(new Board().ascii());
+  // for (let d in directions) {
+  //   const [rOffset, cOffset] = directions[d];
+  //   console.log(directions[d]);
+  // }
+  const exampleFen = "6k1/8/8/8/8/8/5PP1/6K1 w - - 0 1";
+  const board = new Board();
+  board.load(exampleFen);
+  console.log(board.ascii());
+  console.log(board.moves());
 }
 
 export class Board {
@@ -55,6 +55,168 @@ export class Board {
       .join("\n");
   }
 
+  public load(fen: string): void {
+    // '6k1/8/6K1/8/8/8/8/R7 w - - 0 1';
+    const parts = fen.split(" ");
+    if (parts.length !== 6) {
+      throw `Invalid FEN: Expected 6 parts but got ${parts.length}`;
+    }
+    const [boardString, turn, castling, enPassant, halfMoves, fullMoves] =
+      parts;
+    this.board = this.parseFenBoard(boardString);
+    this.turn = turn as Color; // TODO Validate
+    // TODO Everything else
+  }
+
+  public loadAscii(boardString: string, options: { turn: Color }): void {
+    this.board = this.parseAsciiBoard(boardString);
+    this.turn = options.turn;
+    // TODO Add and implement other options -- What parts should be required?
+    // Should some be optional? (For those: Reset to defaults? Leave unchanged?
+    // Infer?)
+  }
+
+  public moves(): string[];
+  public moves(verbose: false): string[];
+  public moves(verbose: true): Move[];
+  public moves(verbose?: boolean): string[] | Move[] {
+    // TODO Check legality
+    const candidates = this.generatePseudolegalMoves();
+    if (verbose) {
+      return candidates;
+    } else {
+      return candidates.map((move) => this.toAlgebraicMove(move));
+    }
+  }
+
+  private parseFenBoard(boardString: string): Nullable<Piece>[][] {
+    const board: Nullable<Piece>[][] = boardString
+      .split("/")
+      .map((rowString) => this.parseFenRow(rowString));
+    if (board.length !== 8) {
+      throw `Invalid FEN: Expected 8 ranks but got ${board.length}`;
+    }
+    return board;
+  }
+
+  private parseFenRow(rowString: string): Nullable<Piece>[] {
+    const row: Nullable<Piece>[] = [];
+    for (let char of rowString) {
+      if ("12345678".includes(char)) {
+        const count = +char;
+        for (let i = 0; i < count; i++) {
+          row.push(undefined);
+        }
+      } else {
+        row.push(this.fromFenPiece(char as FenPiece /* TODO Validate */));
+      }
+    }
+    if (row.length !== 8) {
+      throw `Invalid row of FEN (has incorrect number of squares): ${rowString}`;
+    }
+    return row;
+  }
+
+  private parseAsciiBoard(boardString: string): Nullable<Piece>[][] {
+    const board: Nullable<Piece>[][] = boardString
+      .trim()
+      .split("\n")
+      .map((rowString) => this.parseAsciiRow(rowString));
+    if (board.length !== 8) {
+      throw `Invalid ASCII board: Expected 8 ranks but got ${board.length}`;
+    }
+    return board;
+  }
+
+  private parseAsciiRow(rowString: string): Nullable<Piece>[] {
+    const row: Nullable<Piece>[] = [];
+    for (let char of rowString.split(" ")) {
+      if (char === ".") {
+        row.push(undefined);
+      } else {
+        row.push(this.fromFenPiece(char as FenPiece /* TODO Validate */));
+      }
+    }
+    if (row.length !== 8) {
+      throw `Invalid row of ASCII board (has incorrect number of squares): ${rowString}`;
+    }
+    return row;
+  }
+
+  private generatePseudolegalMoves(): Move[] {
+    const results = [];
+    for (let [r, row] of this.board.entries()) {
+      for (let [c, piece] of row.entries()) {
+        if (piece && piece.color == this.turn) {
+          for (let move of this.generateMovesForPiece(r, c, piece)) {
+            results.push(move);
+          }
+        }
+      }
+    }
+    return results;
+  }
+
+  private *generateMovesForPiece(
+    r: number,
+    c: number,
+    piece: Piece
+  ): Generator<Move> {
+    if (piece.type === "k") {
+      yield* this.generateKingMoves(r, c, piece);
+    } else if (piece.type === "r") {
+      yield* this.generateRookMoves(r, c, piece);
+    } else if (piece.type === "p") {
+      yield* this.generatePawnMoves(r, c, piece);
+    } else {
+      throw "Not implemented";
+    }
+  }
+
+  private *generateKingMoves(
+    r: number,
+    c: number,
+    piece: Piece
+  ): Generator<Move> {
+    for (let d in directions) {
+      const targetSquare = {
+        r: r + directions[d][0],
+        c: c + directions[d][1],
+      };
+      if (!inBounds(targetSquare)) {
+        continue;
+      }
+      const targetPiece: Piece | undefined =
+        this.board[targetSquare.r][targetSquare.c];
+      if (!targetPiece || targetPiece.color !== piece.color) {
+        yield {
+          piece,
+          start: { r, c },
+          target: targetSquare,
+          isEnPassant: false,
+          isCastling: false,
+        };
+      }
+    }
+    // TODO Castling
+  }
+
+  private *generateRookMoves(
+    r: number,
+    c: number,
+    piece: Piece
+  ): Generator<Move> {
+    // TODO
+  }
+
+  private *generatePawnMoves(
+    r: number,
+    c: number,
+    piece: Piece
+  ): Generator<Move> {
+    // TODO
+  }
+
   private makeInitialBoard(): Nullable<Piece>[][] {
     const nil = undefined;
     return (
@@ -71,6 +233,13 @@ export class Board {
     ).map((row) =>
       row.map((piece) => (piece ? this.fromFenPiece(piece) : undefined))
     );
+  }
+
+  private toAlgebraicMove(move: Move): string {
+    const piece = move.piece.type.toUpperCase();
+    const target = toSquareName(move.target);
+    return piece + target;
+    // TODO All the context-aware stuff (disambiguation, check, mate, promotion)
   }
 
   private fromFenPiece(fenPiece: FenPiece): Piece {
