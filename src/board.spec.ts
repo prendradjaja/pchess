@@ -1,7 +1,7 @@
 import { Board } from "./board";
 
 describe("moves()", () => {
-  it("recognizes own pieces and the edge of the board", () => {
+  it("won't generate self-captures or moves out of bounds", () => {
     const board = new Board();
     const ascii = `
 . . . . . . k .
@@ -17,7 +17,7 @@ describe("moves()", () => {
     expect(kingMoves.sort()).toEqual(["Kf1", "Kh1", "Kh2"]);
   });
 
-  it("can capture", () => {
+  it("distinguishes captures and non-captures", () => {
     const board = new Board();
     const ascii = `
 . . . . . . k .
