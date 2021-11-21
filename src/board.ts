@@ -102,12 +102,26 @@ export class Board {
     // TODO Everything else
   }
 
-  public loadAscii(boardString: string, options: { turn: Color }): void {
+  /**
+   * @param options: Provide any other state that can't be determined from
+   * just the board position here. If an option is not provided, it is left
+   * unchanged.
+   * - options.castling: FEN format (e.g. "-" "KQkq" "K")
+   */
+  public loadAscii(
+    boardString: string,
+    options?: { turn?: Color; castling?: string }
+  ): void {
     this.board = this.parseAsciiBoard(boardString);
-    this.turn = options.turn;
-    // TODO Add and implement other options -- What parts should be required?
-    // Should some be optional? (For those: Reset to defaults? Leave unchanged?
-    // Infer?)
+    if (options) {
+      if (options.turn) {
+        this.turn = options.turn;
+      }
+      if (options.castling) {
+        this.castlingRights = this.parseFenCastlingRights(options.castling);
+      }
+      // TODO Add other options
+    }
   }
 
   public moves(): string[];
@@ -153,6 +167,25 @@ export class Board {
       throw `Invalid row of FEN (has incorrect number of squares): ${rowString}`;
     }
     return row;
+  }
+
+  private parseFenCastlingRights(rights: string): CastlingRights {
+    const result = {
+      w: { short: false, long: false },
+      b: { short: false, long: false },
+    };
+    for (let char of rights) {
+      if (char === "K") {
+        result.w.short = true;
+      } else if (char === "Q") {
+        result.w.long = true;
+      } else if (char === "k") {
+        result.b.short = true;
+      } else if (char === "q") {
+        result.b.long = true;
+      }
+    }
+    return result;
   }
 
   private parseAsciiBoard(boardString: string): Nullable<Piece>[][] {
