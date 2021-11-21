@@ -1,4 +1,4 @@
-import { SquareCoords, SquareName } from "./types";
+import { SquareCoords, SquareName, Offset } from "./types";
 
 const files = "abcdefgh";
 const ranks = "87654321";
@@ -11,4 +11,11 @@ export function inBounds(coords: SquareCoords): boolean {
 export function toSquareName(coords: SquareCoords): SquareName {
   const { r, c } = coords;
   return (files[c] + ranks[r]) as SquareName;
+}
+
+export function addOffset(square: SquareCoords, offset: Offset): SquareCoords {
+  return {
+    r: square.r + offset.dr,
+    c: square.c + offset.dc,
+  };
 }
