@@ -123,6 +123,10 @@ export class Board {
     }
   }
 
+  private getPiece(square: SquareCoords): Piece | undefined {
+    return this.board[square.r][square.c];
+  }
+
   private parseFenBoard(boardString: string): Nullable<Piece>[][] {
     const board: Nullable<Piece>[][] = boardString
       .split("/")
