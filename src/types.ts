@@ -38,6 +38,7 @@ export interface CastlingRights {
 
 // zero-indexed
 export type SquareCoords = { r: number; c: number };
+export type Offset = { dr: number; dc: number };
 
 export type FileName = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h";
 export type OneIndexedCoordinate = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;

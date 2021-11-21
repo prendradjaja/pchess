@@ -11,25 +11,23 @@ import {
   FileName,
   OneIndexedCoordinate,
   SquareName,
+  Offset,
 } from "./types";
 
-const directions: { [key: string]: number[] } = {
-  N: [-1, 0],
-  NE: [-1, 1],
-  E: [0, 1],
-  SE: [1, 1],
-  S: [1, 0],
-  SW: [1, -1],
-  W: [0, -1],
-  NW: [-1, -1],
+const directions: { [key: string]: Offset } = {
+  N: { dr: -1, dc: 0 },
+  NE: { dr: -1, dc: 1 },
+  E: { dr: 0, dc: 1 },
+  SE: { dr: 1, dc: 1 },
+  S: { dr: 1, dc: 0 },
+  SW: { dr: 1, dc: -1 },
+  W: { dr: 0, dc: -1 },
+  NW: { dr: -1, dc: -1 },
 };
 
+const ALL_DIRECTIONS = Object.values(directions);
+
 export function demo() {
-  // console.log(new Board().ascii());
-  // for (let d in directions) {
-  //   const [rOffset, cOffset] = directions[d];
-  //   console.log(directions[d]);
-  // }
   const exampleFen = "6k1/8/8/8/8/8/5PP1/6K1 w - - 0 1";
   const board = new Board();
   board.load(exampleFen);
@@ -178,10 +176,10 @@ export class Board {
     c: number,
     piece: Piece
   ): Generator<Move> {
-    for (let d in directions) {
+    for (let offset of ALL_DIRECTIONS) {
       const targetSquare = {
-        r: r + directions[d][0],
-        c: c + directions[d][1],
+        r: r + offset.dr,
+        c: c + offset.dc,
       };
       if (!inBounds(targetSquare)) {
         continue;
