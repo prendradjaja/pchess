@@ -1,3 +1,3 @@
-import { hello } from "./hello";
+import { demo as boardDemo } from "./board";
 
-console.log(hello());
+boardDemo();
