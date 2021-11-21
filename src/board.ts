@@ -1,6 +1,12 @@
 type Nullable<T> = T | undefined;
 
-type ColoredPiece =
+interface Piece {
+  color: Color;
+  type: PieceType;
+}
+type PieceType = "k" | "q" | "r" | "b" | "n" | "p";
+
+type FenPiece =
   | "k"
   | "q"
   | "r"
@@ -13,7 +19,6 @@ type ColoredPiece =
   | "B"
   | "N"
   | "P";
-type UncoloredPiece = "k" | "q" | "r" | "b" | "n" | "p";
 
 type Color = "w" | "b";
 interface CastlingRights {
@@ -33,7 +38,7 @@ export function demo() {
 }
 
 export class Board {
-  private board: Nullable<ColoredPiece>[][] = this.makeInitialBoard();
+  private board: Nullable<Piece>[][] = this.makeInitialBoard();
   private turn: Color = "w";
   private castlingRights: CastlingRights = this.makeInitialCastlingRights();
   private enPassantTarget?: SquareCoords;
@@ -44,22 +49,42 @@ export class Board {
 
   public ascii(): string {
     return this.board
-      .map((row) => row.map((piece) => piece || ".").join(" "))
+      .map((row) =>
+        row.map((piece) => (piece ? this.toFenPiece(piece) : ".")).join(" ")
+      )
       .join("\n");
   }
 
-  private makeInitialBoard(): Nullable<ColoredPiece>[][] {
+  private makeInitialBoard(): Nullable<Piece>[][] {
     const nil = undefined;
-    return [
-      ["r", "n", "b", "q", "k", "b", "n", "r"],
-      ["p", "p", "p", "p", "p", "p", "p", "p"],
-      [nil, nil, nil, nil, nil, nil, nil, nil],
-      [nil, nil, nil, nil, nil, nil, nil, nil],
-      [nil, nil, nil, nil, nil, nil, nil, nil],
-      [nil, nil, nil, nil, nil, nil, nil, nil],
-      ["P", "P", "P", "P", "P", "P", "P", "P"],
-      ["R", "N", "B", "Q", "K", "B", "N", "R"],
-    ];
+    return (
+      [
+        ["r", "n", "b", "q", "k", "b", "n", "r"],
+        ["p", "p", "p", "p", "p", "p", "p", "p"],
+        [nil, nil, nil, nil, nil, nil, nil, nil],
+        [nil, nil, nil, nil, nil, nil, nil, nil],
+        [nil, nil, nil, nil, nil, nil, nil, nil],
+        [nil, nil, nil, nil, nil, nil, nil, nil],
+        ["P", "P", "P", "P", "P", "P", "P", "P"],
+        ["R", "N", "B", "Q", "K", "B", "N", "R"],
+      ] as FenPiece[][]
+    ).map((row) =>
+      row.map((piece) => (piece ? this.fromFenPiece(piece) : undefined))
+    );
+  }
+
+  private fromFenPiece(fenPiece: FenPiece): Piece {
+    const isWhite = fenPiece.toUpperCase() === fenPiece;
+    return {
+      type: fenPiece.toLowerCase() as PieceType,
+      color: isWhite ? "w" : "b",
+    };
+  }
+
+  private toFenPiece(piece: Piece): FenPiece {
+    return (
+      piece.color === "w" ? piece.type.toUpperCase() : piece.type
+    ) as FenPiece;
   }
 
   private makeInitialCastlingRights(): CastlingRights {
