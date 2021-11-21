@@ -26,6 +26,16 @@ const directions: { [key: string]: Offset } = {
 };
 
 const ALL_DIRECTIONS = Object.values(directions);
+const KNIGHT_MOVES = [
+  { dr: -2, dc: -1 },
+  { dr: -1, dc: -2 },
+  { dr: -2, dc: 1 },
+  { dr: -1, dc: 2 },
+  { dr: 2, dc: 1 },
+  { dr: 1, dc: 2 },
+  { dr: 2, dc: -1 },
+  { dr: 1, dc: -2 },
+];
 
 export function demo() {
   const exampleFen = "6k1/8/8/8/8/8/5PP1/6K1 w - - 0 1";
@@ -225,7 +235,27 @@ export class Board {
     c: number,
     piece: Piece
   ): Generator<Move> {
-    // TODO
+    for (let offset of KNIGHT_MOVES) {
+      const targetSquare = {
+        r: r + offset.dr,
+        c: c + offset.dc,
+      };
+      if (!inBounds(targetSquare)) {
+        continue;
+      }
+      const targetPiece: Piece | undefined =
+        this.board[targetSquare.r][targetSquare.c];
+      if (!targetPiece || targetPiece.color !== piece.color) {
+        yield {
+          piece,
+          start: { r, c },
+          target: targetSquare,
+          isEnPassant: false,
+          isCastling: false,
+          capturedPiece: targetPiece,
+        };
+      }
+    }
   }
 
   private *generateBishopMoves(

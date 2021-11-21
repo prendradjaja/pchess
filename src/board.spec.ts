@@ -2,6 +2,40 @@ import { Board } from "./board";
 import { toSquareName } from "./util";
 
 describe("moves()", () => {
+  it("generates king moves on an empty board", () => {
+    const board = new Board();
+    const ascii = `
+. . . . . . k .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . K . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .`;
+    board.loadAscii(ascii, { turn: "w" });
+    const moves = board.moves();
+    expect(moves.sort()).toEqual("Kd3 Kd4 Kd5 Ke3 Ke5 Kf3 Kf4 Kf5".split(" "));
+  });
+
+  it("generates knight moves on an empty board", () => {
+    const board = new Board();
+    const ascii = `
+. . . . . . k .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . N . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . K`;
+    board.loadAscii(ascii, { turn: "w" });
+    const knightMoves = board.moves().filter((move) => move.startsWith("N"));
+    expect(knightMoves.sort()).toEqual(
+      "Nc3 Nc5 Nd2 Nd6 Nf2 Nf6 Ng3 Ng5".split(" ")
+    );
+  });
+
   it("won't generate self-captures or moves out of bounds", () => {
     const board = new Board();
     const ascii = `
