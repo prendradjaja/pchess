@@ -1,7 +1,7 @@
 import { Board } from "./board";
 import { toSquareName } from "./util";
 
-describe("moves()", () => {
+describe(".moves()", () => {
   it("generates king moves on an empty board", () => {
     const board = new Board();
     const ascii = `
