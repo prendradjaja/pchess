@@ -56,12 +56,19 @@ export function demo() {
 . . . . . . . .
 . . . . . . . .
 . . . . . . . .
-. . . . R . . .
+. . . . Q . . .
 . . . . . . . .
-. . . . . . . .
-. . . . . . . K`;
+. . . . . . P .
+K . . . . . . .`;
   board.loadAscii(ascii, { turn: "w" });
-  console.log(board.moves());
+  for (let move of board.moves(true)) {
+    console.log(toSquareName(move.target));
+    (board as any).board[move.target.r][move.target.c] = {
+      color: "b",
+      type: "x",
+    };
+  }
+  console.log(board.ascii());
 }
 
 export class Board {
@@ -238,7 +245,7 @@ export class Board {
     c: number,
     piece: Piece
   ): Generator<Move> {
-    // TODO
+    yield* this.generateSlidingMoves(r, c, piece, ALL_DIRECTIONS);
   }
 
   private *generateRookMoves(
@@ -282,7 +289,7 @@ export class Board {
     c: number,
     piece: Piece
   ): Generator<Move> {
-    // TODO
+    yield* this.generateSlidingMoves(r, c, piece, BISHOP_DIRECTIONS);
   }
 
   private *generatePawnMoves(

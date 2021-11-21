@@ -76,6 +76,8 @@ describe("moves()", () => {
     );
   });
 
+  // TODO Tests for the other sliding pieces
+
   it("won't generate self-captures or moves out of bounds", () => {
     const board = new Board();
     const ascii = `
