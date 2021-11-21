@@ -13,6 +13,14 @@ export function toSquareName(coords: SquareCoords): SquareName {
   return (files[c] + ranks[r]) as SquareName;
 }
 
+export function fromSquareName(squareName: string): SquareCoords {
+  const [file, rank] = squareName;
+  return {
+    r: ranks.indexOf(rank),
+    c: files.indexOf(file),
+  };
+}
+
 export function addOffset(square: SquareCoords, offset: Offset): SquareCoords {
   return {
     r: square.r + offset.dr,

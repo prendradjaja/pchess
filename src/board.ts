@@ -1,4 +1,4 @@
-import { inBounds, toSquareName, addOffset } from "./util";
+import { inBounds, toSquareName, addOffset, fromSquareName } from "./util";
 import {
   Nullable,
   Piece,
@@ -135,6 +135,15 @@ export class Board {
     } else {
       return candidates.map((move) => this.toAlgebraicMove(move));
     }
+  }
+
+  public get(squareName: string): Piece | undefined {
+    return this.getPiece(fromSquareName(squareName));
+  }
+
+  public getShort(squareName: string): FenPiece | undefined {
+    const piece = this.getPiece(fromSquareName(squareName));
+    return piece && this.toFenPiece(piece);
   }
 
   private getPiece(square: SquareCoords): Piece | undefined {
