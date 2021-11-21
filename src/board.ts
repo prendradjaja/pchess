@@ -198,16 +198,16 @@ export class Board {
       if (!inBounds(targetSquare)) {
         continue;
       }
-      const targetPiece: Piece | undefined =
+      const capturedPiece: Piece | undefined =
         this.board[targetSquare.r][targetSquare.c];
-      if (!targetPiece || targetPiece.color !== piece.color) {
+      if (!capturedPiece || capturedPiece.color !== piece.color) {
         yield {
           piece,
           start: { r, c },
           target: targetSquare,
           isEnPassant: false,
           isCastling: false,
-          capturedPiece: targetPiece,
+          capturedPiece,
         };
       }
     }
@@ -243,16 +243,16 @@ export class Board {
       if (!inBounds(targetSquare)) {
         continue;
       }
-      const targetPiece: Piece | undefined =
+      const capturedPiece: Piece | undefined =
         this.board[targetSquare.r][targetSquare.c];
-      if (!targetPiece || targetPiece.color !== piece.color) {
+      if (!capturedPiece || capturedPiece.color !== piece.color) {
         yield {
           piece,
           start: { r, c },
           target: targetSquare,
           isEnPassant: false,
           isCastling: false,
-          capturedPiece: targetPiece,
+          capturedPiece,
         };
       }
     }
