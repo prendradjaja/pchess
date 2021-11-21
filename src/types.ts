@@ -13,6 +13,7 @@ export interface Move {
   isEnPassant: boolean;
   isCastling: boolean;
   promotion?: PieceType;
+  capturedPiece?: Piece;
 }
 
 export type FenPiece =

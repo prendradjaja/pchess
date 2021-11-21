@@ -195,6 +195,7 @@ export class Board {
           target: targetSquare,
           isEnPassant: false,
           isCastling: false,
+          capturedPiece: targetPiece,
         };
       }
     }
@@ -237,9 +238,10 @@ export class Board {
 
   private toAlgebraicMove(move: Move): string {
     const piece = move.piece.type.toUpperCase();
+    const capture = move.capturedPiece ? "x" : "";
     const target = toSquareName(move.target);
-    return piece + target;
-    // TODO All the context-aware stuff (disambiguation, check, mate, promotion)
+    return piece + capture + target;
+    // TODO Disambiguation, check, mate promotion
   }
 
   private fromFenPiece(fenPiece: FenPiece): Piece {
