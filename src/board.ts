@@ -383,7 +383,60 @@ export class Board {
     c: number,
     piece: Piece
   ): Generator<Move> {
-    // TODO
+    const direction = piece.color === "w" ? -1 : 1;
+    const offset = { dr: direction, dc: 0 };
+
+    // The square the pawn would go to with a single move forward
+    const nextSquare = addOffset({ r, c }, offset);
+
+    if (nextSquare.r === -1 || nextSquare.r === 8) {
+      return; // Out of bounds
+    }
+    if (nextSquare.r === 0 || nextSquare.r === 7) {
+      return; // TODO promotions;
+    }
+
+    // Normal move (forward 1 square)
+    if (!this.getPiece(nextSquare)) {
+      yield {
+        piece,
+        start: { r, c },
+        target: nextSquare,
+        isEnPassant: false,
+        isCastling: false,
+      };
+    }
+
+    const isOnInitialSquare = r === 1 || r === 6;
+    // The square the pawn would go to with a single move forward
+    const doubleMoveSquare = addOffset(nextSquare, offset);
+
+    // Double move
+    if (isOnInitialSquare && !this.getPiece(doubleMoveSquare)) {
+      yield {
+        piece,
+        start: { r, c },
+        target: doubleMoveSquare,
+        isEnPassant: false,
+        isCastling: false,
+      };
+    }
+
+    // if (unmoved && double square empty) {
+    //   yield double move;
+    // }
+    // if (left corner has opponent piece) { // don't forget oob
+    //   yield capture;
+    // }
+    // if (right corner has opponent piece) { // don't forget oob
+    //   yield capture;
+    // }
+    // if (is left corner of EP) { // don't forget oob?
+    //   yield capture;
+    // }
+    // if (is right corner of EP) { // don't forget oob?
+    //   yield capture;
+    // }
   }
 
   // Pseudolegal
@@ -451,7 +504,8 @@ export class Board {
     if (move.isCastling) {
       return move.target.c === 6 ? "O-O" : "O-O-O";
     } else {
-      const piece = move.piece.type.toUpperCase();
+      const piece =
+        move.piece.type !== "p" ? move.piece.type.toUpperCase() : "";
       const capture = move.capturedPiece ? "x" : "";
       const target = toSquareName(move.target);
       return piece + capture + target;

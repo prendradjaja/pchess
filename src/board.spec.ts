@@ -119,6 +119,44 @@ describe(".moves()", () => {
     expect(kh3.capturedPiece).toBeUndefined();
   });
 
+  describe("(Pawn moves)", () => {
+    it("generates single and double moves (white)", () => {
+      const board = new Board();
+      const ascii = `
+. . . . . . k .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+P . . . . . . .
+. P P P P P P P
+. . B Q K B . .`;
+      board.loadAscii(ascii, { turn: "w" });
+      const moves = board.moves();
+      expect(moves.sort()).toEqual(
+        "a4 b3 b4 c3 c4 d3 d4 e3 e4 f3 f4 g3 g4 h3 h4".split(" ")
+      );
+    });
+
+    it("generates single and double moves (black)", () => {
+      const board = new Board();
+      const ascii = `
+. . b q k b . .
+. p p p p p p p
+p . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . K .`;
+      board.loadAscii(ascii, { turn: "b" });
+      const moves = board.moves();
+      expect(moves.sort()).toEqual(
+        "a5 b5 b6 c5 c6 d5 d6 e5 e6 f5 f6 g5 g6 h5 h6".split(" ")
+      );
+    });
+  });
+
   describe("(Castling)", () => {
     it("should be possible", () => {
       const board = new Board();
