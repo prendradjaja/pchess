@@ -1,4 +1,10 @@
-import { inBounds, toSquareName, addOffset, fromSquareName } from "./util";
+import {
+  inBounds,
+  toSquareName,
+  addOffset,
+  fromSquareName,
+  copyCastlingRights,
+} from "./util";
 import {
   Nullable,
   Piece,
@@ -49,37 +55,28 @@ const KNIGHT_MOVES = [
   { dr: 1, dc: -2 },
 ];
 
-export function demo() {
-  const board = new Board();
-  const ascii = `
-. . . . . . k .
-. . . . . . . .
-. . . . . . . .
-. . . . . . . .
-. . . . Q . . .
-. . . . . . . .
-. . . . . . P .
-K . . . . . . .`;
-  board.loadAscii(ascii, { turn: "w" });
-  for (let move of board.moves(true)) {
-    console.log(toSquareName(move.target));
-    (board as any).board[move.target.r][move.target.c] = {
-      color: "b",
-      type: "x",
-    };
-  }
-  console.log(board.ascii());
+interface HistoryEntry {
+  move: Move | undefined;
+  // Unrecoverable state before this move
+  castlingRights: CastlingRights;
+  enPassantTarget: SquareCoords | undefined;
+  halfMoveClock: number;
 }
 
 export class Board {
   private board: Nullable<Piece>[][] = this.makeInitialBoard();
+
   private turn: Color = "w";
   private castlingRights: CastlingRights = this.makeInitialCastlingRights();
   private enPassantTarget?: SquareCoords;
   private halfMoveClock = 0;
   private fullMoveNumber = 50;
 
-  constructor() {}
+  private history: HistoryEntry[];
+
+  constructor() {
+    this.history = [this.makeHistoryEntry(undefined)];
+  }
 
   public ascii(): string {
     return this.board
@@ -137,6 +134,48 @@ export class Board {
     }
   }
 
+  public move(_move: Move | string): void {
+    let move;
+    if ((_move as any).slice) {
+      // TODO What's the right way to check for a string?
+      // TODO Replace this with a real move parser
+      let moveString = _move as string;
+      const targetSquare = moveString.slice(-2);
+      const pieceType =
+        moveString.length === 2 ? "p" : moveString[0].toLowerCase();
+      const matchedMove = this.moves(true).find(
+        (m) =>
+          toSquareName(m.target) === targetSquare && m.piece.type === pieceType
+      );
+      if (matchedMove) {
+        move = matchedMove;
+      } else {
+        throw `move(string) fake parser couldn't find move ${moveString}`;
+        // This could mean any of:
+        // - Not a legal move
+        // - Not valid algebraic notation
+        // - Move is more complicated than the fake parser can handle
+      }
+    } else {
+      move = _move as Move;
+    }
+    this.history.push(this.makeHistoryEntry(move));
+    if (move.isCastling) {
+      // TODO
+    } else if (move.promotion) {
+      // TODO, incl. capture
+    } else if (move.isEnPassant) {
+      // TODO
+    } else {
+      this.removePiece(move.start);
+      this.setPiece(move.target, move.piece); // Replacing captured piece, if any
+    }
+
+    this.turn = this.otherPlayer();
+  }
+
+  public undo(): void {}
+
   public get(squareName: string): Piece | undefined {
     return this.getPiece(fromSquareName(squareName));
   }
@@ -146,8 +185,31 @@ export class Board {
     return piece && this.toFenPiece(piece);
   }
 
+  private applyHistoryEntry(entry: HistoryEntry): void {
+    this.castlingRights = copyCastlingRights(entry.castlingRights);
+    this.enPassantTarget = entry.enPassantTarget;
+    this.halfMoveClock = entry.halfMoveClock;
+  }
+
+  private makeHistoryEntry(move: Move | undefined): HistoryEntry {
+    return {
+      move,
+      castlingRights: copyCastlingRights(this.castlingRights),
+      enPassantTarget: this.enPassantTarget,
+      halfMoveClock: this.halfMoveClock,
+    };
+  }
+
   private getPiece(square: SquareCoords): Piece | undefined {
     return this.board[square.r][square.c];
+  }
+
+  private setPiece(square: SquareCoords, piece: Piece) {
+    this.board[square.r][square.c] = piece;
+  }
+
+  private removePiece(square: SquareCoords) {
+    this.board[square.r][square.c] = undefined;
   }
 
   private parseFenBoard(boardString: string): Nullable<Piece>[][] {
@@ -541,4 +603,20 @@ export class Board {
       b: { short: true, long: true },
     };
   }
+
+  private otherPlayer(): Color {
+    return this.turn === "w" ? "b" : "w";
+  }
+}
+
+export function demo() {
+  const board = new Board();
+  // console.log(board.moves());
+  // board.move('e4');
+  // board.move('e5');
+  // board.move('Nf3');
+  // board.move('Nc6');
+  // board.move('Nxe5');
+  // console.log(board.ascii());
+  // console.log(board.moves());
 }

@@ -1,6 +1,53 @@
 import { Board } from "./board";
 import { toSquareName } from "./util";
 
+describe(".move()", () => {
+  it("can perform non-captures and captures", () => {
+    let expected;
+    const board = new Board();
+    board.move("e4");
+
+    expected = `
+r n b q k b n r
+p p p p p p p p
+. . . . . . . .
+. . . . . . . .
+. . . . P . . .
+. . . . . . . .
+P P P P . P P P
+R N B Q K B N R`;
+    expect("\n" + board.ascii()).toEqual(expected);
+
+    board.move("e5");
+    board.move("Nf3");
+    board.move("Nc6");
+
+    expected = `
+r . b q k b n r
+p p p p . p p p
+. . n . . . . .
+. . . . p . . .
+. . . . P . . .
+. . . . . N . .
+P P P P . P P P
+R N B Q K B . R`;
+    expect("\n" + board.ascii()).toEqual(expected);
+
+    board.move("Nxe5");
+
+    expected = `
+r . b q k b n r
+p p p p . p p p
+. . n . . . . .
+. . . . N . . .
+. . . . P . . .
+. . . . . . . .
+P P P P . P P P
+R N B Q K B . R`;
+    expect("\n" + board.ascii()).toEqual(expected);
+  });
+});
+
 describe(".moves()", () => {
   it("generates king moves on an empty board", () => {
     const board = new Board();

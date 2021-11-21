@@ -1,4 +1,4 @@
-import { SquareCoords, SquareName, Offset } from "./types";
+import { SquareCoords, SquareName, Offset, CastlingRights } from "./types";
 
 const files = "abcdefgh";
 const ranks = "87654321";
@@ -25,5 +25,12 @@ export function addOffset(square: SquareCoords, offset: Offset): SquareCoords {
   return {
     r: square.r + offset.dr,
     c: square.c + offset.dc,
+  };
+}
+
+export function copyCastlingRights(rights: CastlingRights): CastlingRights {
+  return {
+    w: { ...rights.w },
+    b: { ...rights.b },
   };
 }
