@@ -170,7 +170,33 @@ export class Board {
     this.turn = this.otherPlayer();
   }
 
-  public undo(): void {}
+  public undo(): void {
+    let historyEntry = this.history.pop();
+    if (!historyEntry) {
+      throw "undo() called with empty stack";
+    }
+    this.applyHistoryEntry(historyEntry);
+    const move = historyEntry.move;
+    if (!move) {
+      return;
+    }
+
+    if (move.isCastling) {
+      // TODO
+    } else if (move.promotion) {
+      // TODO, incl. capture
+    } else if (move.isEnPassant) {
+      // TODO
+    } else {
+      this.removePiece(move.target);
+      this.setPiece(move.start, move.piece);
+      if (move.capturedPiece) {
+        this.setPiece(move.target, move.capturedPiece);
+      }
+    }
+
+    this.turn = this.otherPlayer();
+  }
 
   public get(squareName: string): Piece | undefined {
     return this.getPiece(fromSquareName(squareName));
