@@ -517,9 +517,6 @@ export class Board {
       };
     }
 
-    // if (unmoved && double square empty) {
-    //   yield double move;
-    // }
     // if (left corner has opponent piece) { // don't forget oob
     //   yield capture;
     // }
