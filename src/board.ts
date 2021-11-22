@@ -56,7 +56,7 @@ const KNIGHT_MOVES = [
 ];
 
 interface HistoryEntry {
-  move: Move | undefined;
+  move: Move;
   // Unrecoverable state before this move
   castlingRights: CastlingRights;
   enPassantTarget: SquareCoords | undefined;
@@ -72,11 +72,7 @@ export class Board {
   private halfMoveClock = 0;
   private fullMoveNumber = 50;
 
-  private history: HistoryEntry[];
-
-  constructor() {
-    this.history = [this.makeHistoryEntry(undefined)];
-  }
+  private history: HistoryEntry[] = [];
 
   public ascii(): string {
     return this.board
@@ -191,7 +187,7 @@ export class Board {
     this.halfMoveClock = entry.halfMoveClock;
   }
 
-  private makeHistoryEntry(move: Move | undefined): HistoryEntry {
+  private makeHistoryEntry(move: Move): HistoryEntry {
     return {
       move,
       castlingRights: copyCastlingRights(this.castlingRights),
