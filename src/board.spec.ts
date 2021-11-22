@@ -202,6 +202,22 @@ p . . . . . . .
         "a5 b5 b6 c5 c6 d5 d6 e5 e6 f5 f6 g5 g6 h5 h6".split(" ")
       );
     });
+
+    it("doesn't allow double move if a piece is directly in front", () => {
+      const board = new Board();
+      const ascii = `
+. . . . . . . .
+. . . . p p . .
+. . . . . k . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . K .`;
+      board.loadAscii(ascii, { turn: "b", castling: "-" });
+      const pawnMoves = board.moves().filter((move) => !move.startsWith("K"));
+      expect(pawnMoves.sort()).toEqual(["e5", "e6"]);
+    });
   });
 
   describe("(Castling)", () => {

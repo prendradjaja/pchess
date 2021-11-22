@@ -489,8 +489,10 @@ export class Board {
       return; // TODO promotions;
     }
 
+    const nextPiece = this.getPiece(nextSquare);
+
     // Normal move (forward 1 square)
-    if (!this.getPiece(nextSquare)) {
+    if (!nextPiece) {
       yield {
         piece,
         start: { r, c },
@@ -505,7 +507,7 @@ export class Board {
     const doubleMoveSquare = addOffset(nextSquare, offset);
 
     // Double move
-    if (isOnInitialSquare && !this.getPiece(doubleMoveSquare)) {
+    if (!nextPiece && isOnInitialSquare && !this.getPiece(doubleMoveSquare)) {
       yield {
         piece,
         start: { r, c },
